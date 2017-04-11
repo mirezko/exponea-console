@@ -8,6 +8,15 @@
 
   chrome.runtime.onInstalled.addListener(details => {
     console.log('Extension ' + details.reason, details.previousVersion);
+    chrome.browserAction.setBadgeBackgroundColor({
+      color: '#009900'
+    });
+  });
+
+  chrome.runtime.onSuspend.addListener(() => {
+    chrome.browserAction.setBadgeBackgroundColor({
+      color: '##990000'
+    });
   });
 
   chrome.runtime.onConnect.addListener((port) => {
