@@ -1,3 +1,3 @@
 'use strict';
 
-console.log('\'Allo \'Allo! Popup');
+console.log('You can find EXPONEA console in Developer tools');

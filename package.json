@@ -66,6 +66,7 @@
     }
   },
   "dependencies": {
-    "array-buffer-to-data": "^2.0.0"
+    "array-buffer-to-data": "^2.0.0",
+    "jquery": "^3.2.1"
   }
 }
