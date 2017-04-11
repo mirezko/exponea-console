@@ -20,7 +20,7 @@ chrome.runtime.onSuspend.addListener(() => {
 
 chrome.runtime.onConnect.addListener((port) => {
   var match = port.name.match(/background_(\d+)/);
-  if (match.length !== 2) {
+  if (match === null || match.length !== 2) {
     return;
   }
 

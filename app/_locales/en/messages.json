@@ -1,10 +1,10 @@
 {
   "appName": {
     "message": "EXPONEA Console",
-    "description": "Exponea tracking debug console"
+    "description": ""
   },
   "appDescription": {
-    "message": "Exponea Console (by EXPONEA)",
-    "description": "Exponea tracking debug console"
+    "message": "Debug Exponea tracking",
+    "description": ""
   }
 }
