@@ -1,7 +1,6 @@
 {
-  "version": "1.0.0",
+  "version": "0.1.1",
   "description": "Exponea console to debug tracking",
-  "main": "app/popup.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -16,7 +15,7 @@
     "debug",
     "console"
   ],
-  "author": "Tomas Mizerak",
+  "author": "EXPONEA",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/mirezko/exponea-console/issues"
@@ -58,14 +57,11 @@
       "chrome": true
     },
     "rules": {
-      "eol-last": 0,
-      "quotes": [
-        2,
-        "single"
-      ]
+      "eol-last": 0
     }
   },
   "dependencies": {
-    "array-buffer-to-data": "^2.0.0"
+    "array-buffer-to-data": "^2.0.0",
+    "jquery": "^3.2.1"
   }
 }
