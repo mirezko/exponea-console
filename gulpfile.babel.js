@@ -63,7 +63,7 @@ gulp.task('html',  () => {
 
 gulp.task('chromeManifest', () => {
   return gulp.src('app/manifest.json')
-    .pipe($.chromeManifest({
+    /*.pipe($.chromeManifest({
       buildnumber: true,
       background: {
         target: 'scripts/background.js',
@@ -71,7 +71,7 @@ gulp.task('chromeManifest', () => {
           'scripts/chromereload.js'
         ]
       }
-  }))
+  }))*/
   .pipe($.if('*.css', $.cleanCss({compatibility: '*'})))
   .pipe($.if('*.js', $.sourcemaps.init()))
   .pipe($.if('*.js', $.uglify()))

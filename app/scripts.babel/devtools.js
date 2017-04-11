@@ -1,6 +1,9 @@
 (() => {
   'use strict';
 
+  var currentTabId;
+  var backgroundPort;
+
   chrome.devtools.panels.create(
     'EXPONEA',
     null, // No icon path
@@ -8,58 +11,93 @@
     onPanelCreated
   );
 
+  chrome.devtools.network.onNavigated.addListener(onNavigated);
+
   function onPanelCreated(panel) {
-    chrome.runtime.connect();
-    initListener();
-    loadHistory();
+    currentTabId = chrome.devtools.inspectedWindow.tabId;
+    initConnection();
+    initViewListeners();
   }
 
-  function loadHistory() {
-    chrome.devtools.network.getHAR(function (harlog) {
-      if (harlog && harlog.entries)
-        harlog.entries.forEach(function (item, index, array) {
-          newRequest(item);
-        });
+  function initViewListeners() {
+    $('#btnClear').click(function () {
+      $('#container').empty();
+      $('#log').empty();
     });
   }
 
-  function initListener() {
-    chrome.devtools.network.onRequestFinished.addListener(onWebRequest);
-  }
-
-  function onWebRequest(request) {
-    var targetInstance = null;
-    if (/https?:\/\/api\.exponea\.com\/bulk/i.test(request.request.url)) {
-      targetInstance = 'EXP';
-    } else if (/https?:\/\/api\.infinario\.com\/bulk/i.test(request.request.url)) {
-      targetInstance = 'CIN';
-    } else return;
-
-    var body = JSON.parse(request.request.postData.text);
-    try {
-      for (var i in body.commands) {
-        var cmd = body.commands[i];
-        processCommand(cmd);
+  function initConnection() {
+    backgroundPort = chrome.runtime.connect({
+      name: 'background_' + currentTabId
+    });
+    backgroundPort.onMessage.addListener(function (msg) {
+      if (msg.tabId !== currentTabId) {
+        return;
       }
-    } catch (e) {
-      log(e.stack);
-    }
+      switch (msg.type) {
+        case 'command':
+          processCommand(msg.cmd);
+          break;
+        default:
+          log('unk msg', msg);
+          break;
+      }
+    });
+    requestHistory();
   }
+
+  function requestHistory() {
+    var urlBlock = createUrlBlock('history');
+    $('#container').append(urlBlock);
+    backgroundPort.postMessage({
+      type: 'history',
+      tabId: currentTabId
+    });
+  }
+
 
   function processCommand(cmd) {
     switch (cmd.name) {
       case 'crm/events':
-        processEvent(cmd.data);
+        printEvent(cmd.data);
         break;
       default:
         log('unknown type ' + cmd.name);
     }
   }
 
-  function processEvent(event) {
+  function printEvent(event) {
+    var time = new Date(event.timestamp * 1000);
     var eventHTML = $('<div />');
-    eventHTML.text(event.type);
-    $('#container').prepend(eventHTML);
+    var headerText = event.type + ' at ' + time.toLocaleTimeString() + ' (' + time.toLocaleDateString() + ')';
+    eventHTML.text(headerText);
+    var identitiesString = '';
+    for (var idName in event.customer_ids) {
+      identitiesString += idName + ' = ' + event.customer_ids[idName] + '\n';
+    }
+    var identitiesHTML = $('<pre />');
+    identitiesHTML.text(identitiesString);
+    eventHTML.append(identitiesHTML);
+    var propertiesString = '';
+    for (var propertyName in event.properties) {
+      var value = event.properties[propertyName];
+      propertiesString += propertyName + ' = ' + value + '\n';
+    }
+    var propertiesHTML = $('<pre />');
+    propertiesHTML.text(propertiesString);
+    eventHTML.append(propertiesHTML);
+
+    $('#container fieldset.urlblock').first().prepend(eventHTML);
+  }
+
+  function onNavigated(url) {
+    createUrlBlock(url);
+  }
+
+  function createUrlBlock(url) {
+    var urlBlock = $('<fieldset class="urlblock"><legend class="title">' + url + '</legend></fieldset>');
+    $('#container').prepend(urlBlock);
+    return urlBlock;
   }
 
   function log() {
