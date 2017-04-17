@@ -1,4 +1,25 @@
 body {
   padding: 20px;
-  min-width: 350px;
+}
+
+.devtools #container div.event,div.update {
+  margin-bottom: 15px;
+}
+
+.devtools #container div.event {
+  padding-left: 5px;
+  border-left: thick solid #ffd500;
+}
+
+.devtools #container div.event.event_session_ping {
+  font-size: 80%;
+}
+
+.devtools #container span.header .event-name,.action {
+  font-weight: bolder;
+}
+
+.devtools #container div.update {
+  padding-left: 5px;
+  border-left: thick solid #0fd8ff;
 }

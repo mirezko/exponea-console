@@ -1,9 +1,11 @@
 'use strict';
 
 const MESSAGEHISTORY_LIMIT = 200;
+const SETTINGS_VERSION = 1;
 
 const backgroundPorts = [];
 const messagesHistory = [];
+const settings = {};
 
 chrome.runtime.onInstalled.addListener(details => {
   console.log('Extension ' + details.reason, details.previousVersion);
@@ -41,18 +43,35 @@ chrome.runtime.onConnect.addListener((port) => {
   });
 });
 
-const filter = { // TODO: get from settings page and store in google.storage.sync
-  urls: [
-    '*://api.exponea.com/bulk',
-    '*://api.infinario.com/bulk'
-  ]
+const defaultEndpoints = ['*://api.exponea.com/*', '*://api.infinario.com/*'];
+
+const filter = {
+  urls: defaultEndpoints
 };
+
 const opt_extraInfoSpec = ['requestBody'];
 
-chrome.webRequest.onBeforeRequest.addListener(onWebRequest, filter, opt_extraInfoSpec);
+window.getFilters = () => {
+  return filter.urls;
+}
+
+window.resetFilters = () => {
+  updateFilters(defaultEndpoints);
+}
+
+window.updateFilters = (urls) => {
+  chrome.webRequest.onBeforeRequest.removeListener(onWebRequest, filter, opt_extraInfoSpec);
+  filter.urls = urls;
+  chrome.webRequest.onBeforeRequest.addListener(onWebRequest, filter, opt_extraInfoSpec);
+  console.log("Listening for WebRequests on API endpoints:", urls);
+  saveEndpoints(urls);
+}
+
+loadSettings((items) => {
+  updateFilters(items.urls);
+});
 
 function onWebRequest(details) {
-  console.log('onWebRequest', details);
   try {
     var tabId = details.tabId;
     var buffer;
@@ -74,7 +93,6 @@ function processCommand(tabId, cmd) {
     tabId: tabId,
     cmd: cmd
   };
-  console.log(cmd.name, cmd.data.type, cmd.data);
   backgroundPorts.forEach((port, index, array) => {
     if (index === tabId) {
       port.postMessage(msg);
@@ -98,8 +116,59 @@ function sendHistory(tabId) {
 
 function addHistory(msg) {
   if (messagesHistory.length >= MESSAGEHISTORY_LIMIT) {
-    console.count('addHistory[' + msg.tabId + '] discarding old message');
     messagesHistory.shift();
   }
   messagesHistory.push(msg);
 }
+
+window.loadEndpoints = (callback) => {
+  loadSettings((settings) => {
+    callback(settings.urls);
+  });
+}
+
+window.saveEndpoints = (endpoints) => {
+  settings.urls = endpoints;
+  saveSettings(endpoints);
+}
+
+function saveSettings(items) {
+  chrome.storage.sync.set(settings, () => {
+    settings.version = items.version;
+    settings.endpoints = items.urls;
+  });
+}
+
+function loadSettings(callback) {
+  chrome.storage.sync.get((items) => {
+    if (!items.version) {
+      items.version = 0;
+    }
+    if (items.version < SETTINGS_VERSION) {
+      switch (items.version) {
+        case 1:
+          break;
+        default:
+          for (var i in items.urls) {
+            items.urls[i] = items.urls[i].replace(/\/bulk$/, '/*');
+          }
+          break;
+      }
+    }
+    settings.version = items.version;
+    settings.endpoints = items.urls;
+    callback(items);
+  });
+}
+
+chrome.storage.onChanged.addListener(function (changes, namespace) {
+  for (var key in changes) {
+    var storageChange = changes[key];
+    console.log('Storage key "%s" in namespace "%s" changed. ' +
+      'Old value was "%s", new value is "%s".',
+      key,
+      namespace,
+      storageChange.oldValue,
+      storageChange.newValue);
+  }
+});
