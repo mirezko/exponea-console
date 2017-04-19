@@ -63,7 +63,7 @@ window.updateFilters = (urls) => {
   chrome.webRequest.onBeforeRequest.removeListener(onWebRequest, filter, opt_extraInfoSpec);
   filter.urls = urls;
   chrome.webRequest.onBeforeRequest.addListener(onWebRequest, filter, opt_extraInfoSpec);
-  console.log("Listening for WebRequests on API endpoints:", urls);
+  console.log('Listening for WebRequests on API endpoints:', urls);
   saveEndpoints(urls);
 }
 
@@ -75,11 +75,27 @@ function onWebRequest(details) {
   try {
     var tabId = details.tabId;
     var buffer;
-    if (details && details.type === 'xmlhttprequest' && (buffer = details.requestBody.raw[0].bytes)) {
-      var body = arrayBufferToData.toJSON(buffer);
-      for (var i in body.commands) {
-        var cmd = body.commands[i];
-        processCommand(tabId, cmd);
+    if (details && details.type === 'xmlhttprequest') {
+      if (details.requestBody && (buffer = details.requestBody.raw[0].bytes)) {
+        var body = arrayBufferToData.toJSON(buffer);
+        if (details.method == 'POST') {
+          if (/\/bulk$/.test(details.url)) {
+            for (var i in body.commands) {
+              var cmd = body.commands[i];
+              processCommand(tabId, cmd);
+            }
+          } else if (/\crm\/events/.test(details.url)) {
+            processCommand(tabId, body);
+          } else if (/\crm\/customers/.test(details.url)) {
+            processCommand(tabId, body);
+          } else {
+            console.warn('onWebRequest unknown POST request', details);
+          }
+        } else {
+          console.warn('onWebRequest unknown request', details);
+        }
+      } else {
+        console.warn('onWebRequest request without BODY', details);
       }
     }
   } catch (e) {
@@ -88,6 +104,9 @@ function onWebRequest(details) {
 }
 
 function processCommand(tabId, cmd) {
+  if (!cmd.data.timestamp) {
+    cmd.data.timestamp = new Date().getTime() / 1000;
+  }
   const msg = {
     type: 'command',
     tabId: tabId,
