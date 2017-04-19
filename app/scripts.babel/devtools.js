@@ -138,8 +138,8 @@ function createUrlBlock(url) {
 }
 
 function log() {
-  for (var i in arguments) {
-    var obj = arguments[i];
-    $('#log').prepend(document.createTextNode(JSON.stringify(obj) + '\n'));
-  }
+  // for (var i in arguments) {
+  //   var obj = arguments[i];
+  //   $('#log').prepend(document.createTextNode(JSON.stringify(obj) + '\n'));
+  // }
 }
