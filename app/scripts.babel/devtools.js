@@ -78,12 +78,8 @@ function printEvent(event) {
     class: 'header ' + eventClass
   }).html('<span class="event-name">' + event.type + '</span> at <span class="timestring">' + timeString + '</span>');
   eventHTML.append(headerHTML);
-  var identitiesString = '';
-  for (var idName in event.customer_ids) {
-    identitiesString += idName + ' = ' + event.customer_ids[idName] + '\n';
-  }
   var identitiesHTML = $('<pre />');
-  identitiesHTML.text(identitiesString);
+  identitiesHTML.text(updateIdentity(event.customer_ids));
   eventHTML.append(identitiesHTML);
   var propertiesString = '';
   for (var propertyName in event.properties) {
@@ -97,6 +93,7 @@ function printEvent(event) {
 }
 
 function printUpdate(update) {
+
   var timeString = moment(new Date(update.timestamp * 1000)).format('MMM D YYYY, HH:mm:ss');
   var updateHTML = $('<div />', {
     class: 'update'
@@ -105,12 +102,8 @@ function printUpdate(update) {
     class: 'header'
   }).html('<span class="action">Customer update</span> at <span class="timestring">' + timeString + '</span>');
   updateHTML.append(headerHTML);
-  var identitiesString = '';
-  for (var idName in update.ids) {
-    identitiesString += idName + ' = ' + update.ids[idName] + '\n';
-  }
   var identitiesHTML = $('<pre />');
-  identitiesHTML.text(identitiesString);
+  identitiesHTML.text(updateIdentity(update.ids));
   updateHTML.append(identitiesHTML);
   var propertiesString = '';
   var propertiesCount = 0;
@@ -125,6 +118,15 @@ function printUpdate(update) {
     updateHTML.append(propertiesHTML);
   }
   $('#container fieldset.urlblock').first().prepend(updateHTML);
+}
+
+function updateIdentity(identityObj) {
+  var identitiesString = '';
+  for (var idName in identityObj) {
+    identitiesString += idName + ' = ' + identityObj[idName] + '\n';
+  }
+  $('#identity').text(identitiesString);
+  return identitiesString;
 }
 
 function onNavigated(url) {
