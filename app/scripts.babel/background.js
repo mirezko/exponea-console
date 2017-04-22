@@ -5,7 +5,13 @@ const SETTINGS_VERSION = 1;
 
 const backgroundPorts = [];
 const messagesHistory = [];
-const settings = {};
+
+const defaultEndpoints = ['*://api.exponea.com/*', '*://api.infinario.com/*'];
+const defaultSettings = {
+  version: 1,
+  urls: defaultEndpoints
+};
+const globalSettings = {};
 
 chrome.runtime.onInstalled.addListener(details => {
   console.log('Extension ' + details.reason, details.previousVersion);
@@ -43,8 +49,6 @@ chrome.runtime.onConnect.addListener((port) => {
   });
 });
 
-const defaultEndpoints = ['*://api.exponea.com/*', '*://api.infinario.com/*'];
-
 const filter = {
   urls: defaultEndpoints
 };
@@ -64,11 +68,13 @@ window.updateFilters = (urls) => {
   filter.urls = urls;
   chrome.webRequest.onBeforeRequest.addListener(onWebRequest, filter, opt_extraInfoSpec);
   console.log('Listening for WebRequests on API endpoints:', urls);
-  saveEndpoints(urls);
+  globalSettings.urls = urls;
+  saveSettings(globalSettings);
 }
 
-loadSettings((items) => {
-  updateFilters(items.urls);
+updateSettings(globalSettings, defaultSettings);
+loadSettings((settings) => {
+  updateFilters(settings.urls);
 });
 
 function onWebRequest(details) {
@@ -140,51 +146,55 @@ function addHistory(msg) {
   messagesHistory.push(msg);
 }
 
-window.loadEndpoints = (callback) => {
-  loadSettings((settings) => {
-    callback(settings.urls);
-  });
-}
-
-window.saveEndpoints = (endpoints) => {
-  settings.urls = endpoints;
-  saveSettings(endpoints);
-}
-
-function saveSettings(items) {
-  chrome.storage.sync.set(settings, () => {
-    settings.version = items.version;
-    settings.endpoints = items.urls;
+function saveSettings(value) {
+  updateSettings(globalSettings, value);
+  chrome.storage.sync.set(globalSettings, () => {
+    if (chrome.runtime.lastError) {
+      console.error('Error when saving settings', globalSettings, chrome.runtime.lastError);
+    }
   });
 }
 
 function loadSettings(callback) {
-  chrome.storage.sync.get((items) => {
-    if (!items.version) {
-      items.version = 0;
+  chrome.storage.sync.get(null, (value) => {
+    if (!('version' in value)) {
+      value.version = 0;
     }
-    if (items.version < SETTINGS_VERSION) {
-      switch (items.version) {
-        case 1:
+    if (value.version < SETTINGS_VERSION) {
+      switch (value.version) {
+        case 0:
+          if (value.urls) {
+            for (var i in value.urls) {
+              value.urls[i] = value.urls[i].replace(/\/bulk$/, '/*');
+            }
+          } else {
+            value.urls = defaultSettings.urls;
+          }
+          value.version = 1;
           break;
         default:
-          for (var i in items.urls) {
-            items.urls[i] = items.urls[i].replace(/\/bulk$/, '/*');
-          }
           break;
       }
+      saveSettings(value);
     }
-    settings.version = items.version;
-    settings.endpoints = items.urls;
-    callback(items);
+    callback(globalSettings);
   });
+}
+
+function updateSettings(settings, value) {
+  if ('version' in value) {
+    settings.version = value.version;
+  }
+  if ('urls' in value) {
+    settings.urls = value.urls;
+  }
 }
 
 chrome.storage.onChanged.addListener(function (changes, namespace) {
   for (var key in changes) {
     var storageChange = changes[key];
-    console.log('Storage key "%s" in namespace "%s" changed. ' +
-      'Old value was "%s", new value is "%s".',
+    console.log('Storage key \'%s\' in namespace \'%s\' changed. ' +
+      'Old value was \'%s\', new value is \'%s\'.',
       key,
       namespace,
       storageChange.oldValue,
