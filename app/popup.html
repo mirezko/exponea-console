@@ -10,11 +10,20 @@
   <!-- build:css styles/main.css -->
   <link href="styles/main.css" rel="stylesheet">
   <!-- endbuild -->
+  <script src="scripts/jquery.min.js"></script>
 </head>
 
 <body>
   <h1>You can find EXPONEA Console in Developer tools</h1>
   <p>Use the keyboard shortcuts Ctrl+Shift+I (Windows) or Cmd+Opt+I (Mac)</p>
+  <form name="settingsForm">
+    <fieldset><legend>Advanced settings</legend>
+      <label for="apiEndpoints">API Endpoints:</label>
+      <textarea rows="3" cols="40" id="apiEndpoints"></textarea>
+      <input type="submit" name="reset" value="Reset" /> <input type="submit" name="save" value="Save" />
+    </fieldset>
+  </form>
+
   <!-- build:js scripts/popup-vendor.js -->
   <!-- bower:js -->
   <!-- endbower -->

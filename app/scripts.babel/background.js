@@ -1,9 +1,17 @@
 'use strict';
 
 const MESSAGEHISTORY_LIMIT = 200;
+const SETTINGS_VERSION = 1;
 
 const backgroundPorts = [];
 const messagesHistory = [];
+
+const defaultEndpoints = ['*://api.exponea.com/*', '*://api.infinario.com/*'];
+const defaultSettings = {
+  version: 1,
+  urls: defaultEndpoints
+};
+const globalSettings = {};
 
 chrome.runtime.onInstalled.addListener(details => {
   console.log('Extension ' + details.reason, details.previousVersion);
@@ -41,26 +49,59 @@ chrome.runtime.onConnect.addListener((port) => {
   });
 });
 
-const filter = { // TODO: get from settings page and store in google.storage.sync
-  urls: [
-    '*://api.exponea.com/bulk',
-    '*://api.infinario.com/bulk'
-  ]
+const filter = {
+  urls: defaultEndpoints
 };
+
 const opt_extraInfoSpec = ['requestBody'];
 
-chrome.webRequest.onBeforeRequest.addListener(onWebRequest, filter, opt_extraInfoSpec);
+window.getFilters = () => {
+  return filter.urls;
+}
+
+window.resetFilters = () => {
+  updateFilters(defaultEndpoints);
+}
+
+window.updateFilters = (urls) => {
+  chrome.webRequest.onBeforeRequest.removeListener(onWebRequest, filter, opt_extraInfoSpec);
+  filter.urls = urls;
+  chrome.webRequest.onBeforeRequest.addListener(onWebRequest, filter, opt_extraInfoSpec);
+  console.log('Listening for WebRequests on API endpoints:', urls);
+  globalSettings.urls = urls;
+  saveSettings(globalSettings);
+}
+
+updateSettings(globalSettings, defaultSettings);
+loadSettings((settings) => {
+  updateFilters(settings.urls);
+});
 
 function onWebRequest(details) {
-  console.log('onWebRequest', details);
   try {
     var tabId = details.tabId;
     var buffer;
-    if (details && details.type === 'xmlhttprequest' && (buffer = details.requestBody.raw[0].bytes)) {
-      var body = arrayBufferToData.toJSON(buffer);
-      for (var i in body.commands) {
-        var cmd = body.commands[i];
-        processCommand(tabId, cmd);
+    if (details && details.type === 'xmlhttprequest') {
+      if (details.requestBody && (buffer = details.requestBody.raw[0].bytes)) {
+        var body = arrayBufferToData.toJSON(buffer);
+        if (details.method == 'POST') {
+          if (/\/bulk$/.test(details.url)) {
+            for (var i in body.commands) {
+              var cmd = body.commands[i];
+              processCommand(tabId, cmd);
+            }
+          } else if (/\crm\/events/.test(details.url)) {
+            processCommand(tabId, body);
+          } else if (/\crm\/customers/.test(details.url)) {
+            processCommand(tabId, body);
+          } else {
+            console.warn('onWebRequest unknown POST request', details);
+          }
+        } else {
+          console.warn('onWebRequest unknown request', details);
+        }
+      } else {
+        console.warn('onWebRequest request without BODY', details);
       }
     }
   } catch (e) {
@@ -69,12 +110,14 @@ function onWebRequest(details) {
 }
 
 function processCommand(tabId, cmd) {
+  if (!cmd.data.timestamp) {
+    cmd.data.timestamp = new Date().getTime() / 1000;
+  }
   const msg = {
     type: 'command',
     tabId: tabId,
     cmd: cmd
   };
-  console.log(cmd.name, cmd.data.type, cmd.data);
   backgroundPorts.forEach((port, index, array) => {
     if (index === tabId) {
       port.postMessage(msg);
@@ -98,8 +141,63 @@ function sendHistory(tabId) {
 
 function addHistory(msg) {
   if (messagesHistory.length >= MESSAGEHISTORY_LIMIT) {
-    console.count('addHistory[' + msg.tabId + '] discarding old message');
     messagesHistory.shift();
   }
   messagesHistory.push(msg);
 }
+
+function saveSettings(value) {
+  updateSettings(globalSettings, value);
+  chrome.storage.sync.set(globalSettings, () => {
+    if (chrome.runtime.lastError) {
+      console.error('Error when saving settings', globalSettings, chrome.runtime.lastError);
+    }
+  });
+}
+
+function loadSettings(callback) {
+  chrome.storage.sync.get(null, (value) => {
+    if (!('version' in value)) {
+      value.version = 0;
+    }
+    if (value.version < SETTINGS_VERSION) {
+      switch (value.version) {
+        case 0:
+          if (value.urls) {
+            for (var i in value.urls) {
+              value.urls[i] = value.urls[i].replace(/\/bulk$/, '/*');
+            }
+          } else {
+            value.urls = defaultSettings.urls;
+          }
+          value.version = 1;
+          break;
+        default:
+          break;
+      }
+      saveSettings(value);
+    }
+    callback(globalSettings);
+  });
+}
+
+function updateSettings(settings, value) {
+  if ('version' in value) {
+    settings.version = value.version;
+  }
+  if ('urls' in value) {
+    settings.urls = value.urls;
+  }
+}
+
+chrome.storage.onChanged.addListener(function (changes, namespace) {
+  for (var key in changes) {
+    var storageChange = changes[key];
+    console.log('Storage key \'%s\' in namespace \'%s\' changed. ' +
+      'Old value was \'%s\', new value is \'%s\'.',
+      key,
+      namespace,
+      storageChange.oldValue,
+      storageChange.newValue);
+  }
+});

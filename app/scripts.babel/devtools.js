@@ -5,7 +5,7 @@ var backgroundPort;
 
 chrome.devtools.panels.create(
   'EXPONEA',
-  null, // No icon path
+  null,
   'devtools.html',
   onPanelCreated
 );
@@ -60,22 +60,26 @@ function processCommand(cmd) {
     case 'crm/events':
       printEvent(cmd.data);
       break;
+    case 'crm/customers':
+      printUpdate(cmd.data);
+      break;
     default:
       log('unknown type ' + cmd.name);
   }
 }
 
 function printEvent(event) {
-  var time = new Date(event.timestamp * 1000);
-  var eventHTML = $('<div />');
-  var headerText = event.type + ' at ' + time.toLocaleTimeString() + ' (' + time.toLocaleDateString() + ')';
-  eventHTML.text(headerText);
-  var identitiesString = '';
-  for (var idName in event.customer_ids) {
-    identitiesString += idName + ' = ' + event.customer_ids[idName] + '\n';
-  }
+  var timeString = moment(new Date(event.timestamp * 1000)).format('MMM D YYYY, HH:mm:ss');
+  var eventClass = 'event_' + event.type;
+  var eventHTML = $('<div />', {
+    class: 'event ' + eventClass
+  });
+  var headerHTML = $('<span />', {
+    class: 'header ' + eventClass
+  }).html('<span class="event-name">' + event.type + '</span> at <span class="timestring">' + timeString + '</span>');
+  eventHTML.append(headerHTML);
   var identitiesHTML = $('<pre />');
-  identitiesHTML.text(identitiesString);
+  identitiesHTML.text(updateIdentity(event.customer_ids));
   eventHTML.append(identitiesHTML);
   var propertiesString = '';
   for (var propertyName in event.properties) {
@@ -85,8 +89,44 @@ function printEvent(event) {
   var propertiesHTML = $('<pre />');
   propertiesHTML.text(propertiesString);
   eventHTML.append(propertiesHTML);
-
   $('#container fieldset.urlblock').first().prepend(eventHTML);
+}
+
+function printUpdate(update) {
+
+  var timeString = moment(new Date(update.timestamp * 1000)).format('MMM D YYYY, HH:mm:ss');
+  var updateHTML = $('<div />', {
+    class: 'update'
+  });
+  var headerHTML = $('<span />', {
+    class: 'header'
+  }).html('<span class="action">Customer update</span> at <span class="timestring">' + timeString + '</span>');
+  updateHTML.append(headerHTML);
+  var identitiesHTML = $('<pre />');
+  identitiesHTML.text(updateIdentity(update.ids));
+  updateHTML.append(identitiesHTML);
+  var propertiesString = '';
+  var propertiesCount = 0;
+  for (var propertyName in update.properties) {
+    propertiesCount++;
+    var value = update.properties[propertyName];
+    propertiesString += propertyName + ' = ' + value + '\n';
+  }
+  var propertiesHTML = $('<pre />');
+  propertiesHTML.text(propertiesString);
+  if (propertiesCount > 0) {
+    updateHTML.append(propertiesHTML);
+  }
+  $('#container fieldset.urlblock').first().prepend(updateHTML);
+}
+
+function updateIdentity(identityObj) {
+  var identitiesString = '';
+  for (var idName in identityObj) {
+    identitiesString += idName + ' = ' + identityObj[idName] + '\n';
+  }
+  $('#identity').text(identitiesString);
+  return identitiesString;
 }
 
 function onNavigated(url) {
@@ -100,8 +140,8 @@ function createUrlBlock(url) {
 }
 
 function log() {
-  for (var i in arguments) {
-    var obj = arguments[i];
-    $('#log').prepend(document.createTextNode(JSON.stringify(obj) + '\n'));
-  }
+  // for (var i in arguments) {
+  //   var obj = arguments[i];
+  //   $('#log').prepend(document.createTextNode(JSON.stringify(obj) + '\n'));
+  // }
 }
