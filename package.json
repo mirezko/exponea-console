@@ -1,5 +1,5 @@
 {
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Exponea console to debug tracking",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
