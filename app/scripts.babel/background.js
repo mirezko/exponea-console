@@ -206,24 +206,29 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
   }
 });
 
-(function (w, d, html, js, ga, a, m) {
-  w['GoogleAnalyticsObject'] = ga;
-  w[ga] = w[ga] || function () {
-    (w[ga].q = w[ga].q || []).push(arguments)
-  }, w[ga].l = 1 * new Date();
-  a = d.createElement(html),
-    m = d.getElementsByTagName(html)[0];
-  a.async = 1;
-  a.src = js;
-  m.parentNode.insertBefore(a, m)
-})(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+if (navigator.doNotTrack !== '1' && navigator.doNotTrack !== 'yes') {
+  console.warn('Google Analytics for this extension is ENABLED. This extension respects DoNotTrack setting in your browser.');
+  (function (w, d, html, js, ga, a, m) {
+    w['GoogleAnalyticsObject'] = ga;
+    w[ga] = w[ga] || function () {
+      (w[ga].q = w[ga].q || []).push(arguments)
+    }, w[ga].l = 1 * new Date();
+    a = d.createElement(html),
+      m = d.getElementsByTagName(html)[0];
+    a.async = 1;
+    a.src = js;
+    m.parentNode.insertBefore(a, m)
+  })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
 
-ga('create', 'UA-XXXXX-Y', 'auto');
-ga('send', 'pageview');
+  ga('create', 'UA-XXXXX-Y', 'auto');
+} else {
+  console.warn('Google Analytics for this extension is DISABLED. This extension respects DoNotTrack setting in your browser.');
+}
 
 function trackEvent(eventCategory, eventAction, eventLabel, eventValue, fieldsObject) {
-  console.log('GA:event', eventCategory, eventAction, eventLabel, eventValue, fieldsObject);
-  ga('send', 'event', eventCategory, eventAction, eventLabel, eventValue, fieldsObject);
+  if (typeof ga !== 'undefined') {
+    ga('send', 'event', eventCategory, eventAction, eventLabel, eventValue, fieldsObject);
+  }
 }
 
 window.trackEvent = trackEvent;
