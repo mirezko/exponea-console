@@ -28,5 +28,6 @@
     },
     "default_title": "__MSG_appName__",
     "default_popup": "popup.html"
-  }
+  },
+  "content_security_policy": "script-src 'self' https://www.google-analytics.com; object-src 'self'"
 }

@@ -20,6 +20,11 @@ function onPanelCreated(panel) {
 
 function initViewListeners() {
   $('#btnClear').click(function () {
+    backgroundPort.postMessage({
+      type: 'trackEvent',
+      eventCategory: 'devtools',
+      eventAction: 'clear'
+    });
     $('#container').empty();
     $('#log').empty();
   });
@@ -28,6 +33,11 @@ function initViewListeners() {
 function initConnection() {
   backgroundPort = chrome.runtime.connect({
     name: 'background_' + currentTabId
+  });
+  backgroundPort.postMessage({
+    type: 'trackEvent',
+    eventCategory: 'devtools',
+    eventAction: 'created'
   });
   backgroundPort.onMessage.addListener(function (msg) {
     if (msg.tabId !== currentTabId) {
