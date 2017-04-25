@@ -221,6 +221,8 @@ if (navigator.doNotTrack !== '1' && navigator.doNotTrack !== 'yes') {
   })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
 
   ga('create', 'UA-XXXXX-Y', 'auto');
+  ga('set', 'checkProtocolTask', null);
+  ga('send', 'pageview', '/' + chrome.runtime.id + '/' + chrome.app.getDetails().version);
 } else {
   console.warn('Google Analytics for this extension is DISABLED. This extension respects DoNotTrack setting in your browser.');
 }
