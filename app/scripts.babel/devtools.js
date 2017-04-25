@@ -26,6 +26,7 @@ function initViewListeners() {
       eventAction: 'clear'
     });
     $('#container').empty();
+    $('#identity').empty();
     $('#log').empty();
   });
 }
