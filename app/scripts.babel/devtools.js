@@ -94,7 +94,7 @@ function printEvent(event) {
   var propertiesString = '';
   for (var propertyName in event.properties) {
     var value = event.properties[propertyName];
-    propertiesString += propertyName + ' = ' + value + '\n';
+    propertiesString += propertyName + ' = ' + JSON.stringify(value) + '\n';
   }
   var propertiesHTML = $('<pre />');
   propertiesHTML.text(propertiesString);
@@ -103,7 +103,6 @@ function printEvent(event) {
 }
 
 function printUpdate(update) {
-
   var timeString = moment(new Date(update.timestamp * 1000)).format('MMM D YYYY, HH:mm:ss');
   var updateHTML = $('<div />', {
     class: 'update'
