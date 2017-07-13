@@ -19,7 +19,7 @@ function onPanelCreated(panel) {
 }
 
 function initViewListeners() {
-  $('#btnClear').click(function () {
+  $('#btnClear').click(() => {
     backgroundPort.postMessage({
       type: 'trackEvent',
       eventCategory: 'devtools',
@@ -28,6 +28,8 @@ function initViewListeners() {
     $('#container').empty();
     $('#identity').empty();
     $('#log').empty();
+    var urlBlock = createUrlBlock('');
+    $('#container').append(urlBlock);
   });
 }
 
@@ -40,7 +42,7 @@ function initConnection() {
     eventCategory: 'devtools',
     eventAction: 'created'
   });
-  backgroundPort.onMessage.addListener(function (msg) {
+  backgroundPort.onMessage.addListener((msg) => {
     if (msg.tabId !== currentTabId) {
       return;
     }
