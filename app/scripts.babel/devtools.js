@@ -19,9 +19,17 @@ function onPanelCreated(panel) {
 }
 
 function initViewListeners() {
-  $('#btnClear').click(function () {
+  $('#btnClear').click(() => {
+    backgroundPort.postMessage({
+      type: 'trackEvent',
+      eventCategory: 'devtools',
+      eventAction: 'clear'
+    });
     $('#container').empty();
+    $('#identity').empty();
     $('#log').empty();
+    var urlBlock = createUrlBlock('');
+    $('#container').append(urlBlock);
   });
 }
 
@@ -29,7 +37,12 @@ function initConnection() {
   backgroundPort = chrome.runtime.connect({
     name: 'background_' + currentTabId
   });
-  backgroundPort.onMessage.addListener(function (msg) {
+  backgroundPort.postMessage({
+    type: 'trackEvent',
+    eventCategory: 'devtools',
+    eventAction: 'created'
+  });
+  backgroundPort.onMessage.addListener((msg) => {
     if (msg.tabId !== currentTabId) {
       return;
     }
@@ -84,7 +97,7 @@ function printEvent(event) {
   var propertiesString = '';
   for (var propertyName in event.properties) {
     var value = event.properties[propertyName];
-    propertiesString += propertyName + ' = ' + value + '\n';
+    propertiesString += propertyName + ' = ' + JSON.stringify(value) + '\n';
   }
   var propertiesHTML = $('<pre />');
   propertiesHTML.text(propertiesString);
@@ -93,7 +106,6 @@ function printEvent(event) {
 }
 
 function printUpdate(update) {
-
   var timeString = moment(new Date(update.timestamp * 1000)).format('MMM D YYYY, HH:mm:ss');
   var updateHTML = $('<div />', {
     class: 'update'

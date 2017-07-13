@@ -15,6 +15,7 @@ const globalSettings = {};
 
 chrome.runtime.onInstalled.addListener(details => {
   console.log('Extension ' + details.reason, details.previousVersion);
+  trackEvent('background', details.reason, details.previousVersion);
   chrome.browserAction.setBadgeBackgroundColor({
     color: '#009900'
   });
@@ -38,6 +39,9 @@ chrome.runtime.onConnect.addListener((port) => {
     switch (msg.type) {
       case 'history':
         sendHistory(tabId);
+        break;
+      case 'trackEvent':
+        window.trackEvent(msg.eventCategory, msg.eventAction, msg.eventLabel, msg.eventValue, msg.fieldsObject);
         break;
       default:
         console.warn('unknown message on background port', msg);
@@ -201,3 +205,32 @@ chrome.storage.onChanged.addListener(function (changes, namespace) {
       storageChange.newValue);
   }
 });
+
+if (navigator.doNotTrack !== '1' && navigator.doNotTrack !== 'yes') {
+  console.warn('Google Analytics for this extension is ENABLED. This extension respects DoNotTrack setting in your browser.');
+  (function (w, d, html, js, ga, a, m) {
+    w['GoogleAnalyticsObject'] = ga;
+    w[ga] = w[ga] || function () {
+      (w[ga].q = w[ga].q || []).push(arguments)
+    }, w[ga].l = 1 * new Date();
+    a = d.createElement(html),
+      m = d.getElementsByTagName(html)[0];
+    a.async = 1;
+    a.src = js;
+    m.parentNode.insertBefore(a, m)
+  })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+
+  ga('create', 'UA-XXXXX-Y', 'auto');
+  ga('set', 'checkProtocolTask', null);
+  ga('send', 'pageview', '/' + chrome.runtime.id + '/' + chrome.app.getDetails().version);
+} else {
+  console.warn('Google Analytics for this extension is DISABLED. This extension respects DoNotTrack setting in your browser.');
+}
+
+function trackEvent(eventCategory, eventAction, eventLabel, eventValue, fieldsObject) {
+  if (typeof ga !== 'undefined') {
+    ga('send', 'event', eventCategory, eventAction, eventLabel, eventValue, fieldsObject);
+  }
+}
+
+window.trackEvent = trackEvent;
