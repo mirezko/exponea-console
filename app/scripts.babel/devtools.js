@@ -122,7 +122,7 @@ function printUpdate(update) {
   for (var propertyName in update.properties) {
     propertiesCount++;
     var value = update.properties[propertyName];
-    propertiesString += propertyName + ' = ' + value + '\n';
+    propertiesString += propertyName + ' = ' + JSON.stringify(value) + '\n';
   }
   var propertiesHTML = $('<pre />');
   propertiesHTML.text(propertiesString);
