@@ -181,6 +181,7 @@ function loadSettings(callback) {
       }
       saveSettings(value);
     }
+    saveSettings(value);
     callback(globalSettings);
   });
 }
