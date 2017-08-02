@@ -179,8 +179,8 @@ function loadSettings(callback) {
         default:
           break;
       }
-      saveSettings(value);
     }
+    saveSettings(value);
     callback(globalSettings);
   });
 }
