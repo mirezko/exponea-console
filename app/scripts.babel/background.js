@@ -67,12 +67,21 @@ window.resetFilters = () => {
   updateFilters(defaultEndpoints);
 }
 
-window.updateFilters = (urls) => {
+window.updateFilters = (data) => {
   chrome.webRequest.onBeforeRequest.removeListener(onWebRequest, filter, opt_extraInfoSpec);
-  filter.urls = urls;
+  filter.urls = data.urls;
   chrome.webRequest.onBeforeRequest.addListener(onWebRequest, filter, opt_extraInfoSpec);
-  console.log('Listening for WebRequests on API endpoints:', urls);
-  globalSettings.urls = urls;
+  if(data.incognito){
+    chrome.webRequest.onBeforeSendHeaders.addListener(blockEvent, filter, ["blocking"]);
+    console.log('Tracking is now disabled');
+  }else{
+    chrome.webRequest.onBeforeSendHeaders.removeListener(blockEvent, filter, ["blocking"]);
+    console.log('Tracking is now enabled');
+  }
+  security.incognito = data.incognito;
+  console.log('Listening for WebRequests on API endpoints:', data.urls);
+  globalSettings.urls = data.urls;
+  globalSettings.incognito = data.incognito;
   saveSettings(globalSettings);
 }
 
@@ -80,6 +89,11 @@ updateSettings(globalSettings, defaultSettings);
 loadSettings((settings) => {
   updateFilters(settings.urls);
 });
+
+function blockEvent(){
+  //console.log('blocking an event');
+  return {cancel: true};
+}
 
 function onWebRequest(details) {
   try {

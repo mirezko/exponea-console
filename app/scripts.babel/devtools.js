@@ -16,6 +16,7 @@ function onPanelCreated(panel) {
   currentTabId = chrome.devtools.inspectedWindow.tabId;
   initConnection();
   initViewListeners();
+  initCopyButton();
 }
 
 function initViewListeners() {
@@ -30,6 +31,22 @@ function initViewListeners() {
     $('#log').empty();
     var urlBlock = createUrlBlock('');
     $('#container').append(urlBlock);
+  });
+  
+}
+function initCopyButton() {
+  $('#btnCopy').click((event) => {
+    //select text
+    var copyCookieArea = $('#identity');
+    copyCookieArea.select();
+    try{
+      var success = document.execCommand('copy');
+      var msg = success ? 'successful' : 'unsuccessful';
+      console.log("Copying text command was " + msg);
+    } catch (err) {
+      console.log('Unable to copy');
+      console.log(err.message);
+    }
   });
 }
 

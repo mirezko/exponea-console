@@ -19,8 +19,11 @@
     "background",
     "debugger",
     "webRequest",
+    "webRequestBlocking",
     "storage",
-    "tabs"
+    "tabs",
+    "clipboardWrite",
+    "clipboardRead"
   ],
   "browser_action": {
     "default_icon": {

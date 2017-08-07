@@ -26,6 +26,9 @@ body {
 
 .devtools #identity {
   float: left;
+  resize: none;
+  border: none;
+  width: 300px;
 }
 
 .devtools #btnClear {
