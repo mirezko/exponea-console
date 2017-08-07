@@ -57,14 +57,22 @@ const filter = {
   urls: defaultEndpoints
 };
 
+const security = {
+  incognito: false
+};
+
 const opt_extraInfoSpec = ['requestBody'];
 
 window.getFilters = () => {
   return filter.urls;
 }
 
+window.getIncognito = () => {
+  return security.incognito;
+}
+
 window.resetFilters = () => {
-  updateFilters(defaultEndpoints);
+  updateFilters({urls: defaultEndpoints, incognito: false});
 }
 
 window.updateFilters = (data) => {
@@ -87,7 +95,7 @@ window.updateFilters = (data) => {
 
 updateSettings(globalSettings, defaultSettings);
 loadSettings((settings) => {
-  updateFilters(settings.urls);
+  updateFilters({urls: settings.urls, incognito: settings.incognito});
 });
 
 function blockEvent(){
@@ -205,6 +213,9 @@ function updateSettings(settings, value) {
   }
   if ('urls' in value) {
     settings.urls = value.urls;
+  }
+  if ('incognito' in value) {
+    settings.incognito = value.incognito;
   }
 }
 
