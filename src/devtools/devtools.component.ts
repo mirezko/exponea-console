@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'my-popup',
-  template: require('./popup.component.html'),
+  selector: 'my-devtools',
+  template: require('./devtools.component.html'),
 })
-export class PopupComponent { }
+export class DevtoolsComponent { }
