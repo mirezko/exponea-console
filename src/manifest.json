@@ -10,7 +10,6 @@
     "persistent": true
   },
   "devtools_page": "devtools.html",
-  "default_locale": "en",
   "icons": {
     "128": "icon-128.png"
   },

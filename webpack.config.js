@@ -20,6 +20,8 @@ var options = {
   entry: {
     polyfills: "./src/polyfills.ts",
     popup: "./src/popup.ts",
+    devtools: "./src/devtools.ts",
+    background: "./src/background.ts"
   },
   output: {
     path: path.join(__dirname, "build"),
@@ -61,6 +63,16 @@ var options = {
       template: "./src/popup.html",
       filename: "popup.html",
       chunks: ["polyfills", "popup"]
+    }),
+    new HtmlWebpackPlugin({
+      template: "./src/devtools.html",
+      filename: "devtools.html",
+      chunks: ["polyfills", "devtools"]
+    }),
+    new HtmlWebpackPlugin({
+      template: "./src/background.html",
+      filename: "background.html",
+      chunks: ["polyfills", "background"]
     }),
     new WriteFilePlugin()
   ]
