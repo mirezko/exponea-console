@@ -1,12 +1,28 @@
 {
+  "version": "0.3.0",
   "name": "Chrome Extension Webpack",
   "browser_action": {
     "default_popup": "popup.html",
     "default_icon": "icon-34.png"
   },
+  "background": {
+    "page": "background.html",
+    "persistent": true
+  },
+  "devtools_page": "devtools.html",
+  "default_locale": "en",
   "icons": {
     "128": "icon-128.png"
   },
+  "permissions": [
+    "http://*/*",
+    "https://*/*",
+    "background",
+    "debugger",
+    "webRequest",
+    "storage",
+    "tabs"
+  ],
   "manifest_version": 2,
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
 }
