@@ -12,4 +12,4 @@ import { BackgroundComponent } from './background.component';
   ],
   bootstrap: [ BackgroundComponent ]
 })
-export class backgroundModule { }
+export class BackgroundModule { }
