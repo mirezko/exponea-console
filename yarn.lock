@@ -50,6 +50,22 @@
   dependencies:
     tslib "^1.7.1"
 
+"@types/chrome@^0.0.48":
+  version "0.0.48"
+  resolved "https://registry.yarnpkg.com/@types/chrome/-/chrome-0.0.48.tgz#e18db15773cfc32121bcfd116a09724ff303261f"
+  dependencies:
+    "@types/filesystem" "*"
+
+"@types/filesystem@*":
+  version "0.0.28"
+  resolved "https://registry.yarnpkg.com/@types/filesystem/-/filesystem-0.0.28.tgz#3fd7735830f2c7413cb5ac45780bc45904697b0e"
+  dependencies:
+    "@types/filewriter" "*"
+
+"@types/filewriter@*":
+  version "0.0.28"
+  resolved "https://registry.yarnpkg.com/@types/filewriter/-/filewriter-0.0.28.tgz#c054e8af4d9dd75db4e63abc76f885168714d4b3"
+
 "@types/node@^6.0.45":
   version "6.0.87"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-6.0.87.tgz#5ab5774f8351a33a935099fa6be850aa0b0ad564"

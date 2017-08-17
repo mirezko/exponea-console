@@ -20,6 +20,7 @@
     "zone.js": "^0.8.4"
   },
   "devDependencies": {
+    "@types/chrome": "^0.0.48",
     "@types/node": "^6.0.45",
     "awesome-typescript-loader": "^3.2.3",
     "css-loader": "^0.25.0",
