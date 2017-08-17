@@ -12,4 +12,4 @@ import { DevtoolsComponent } from './devtools.component';
   ],
   bootstrap: [ DevtoolsComponent ]
 })
-export class devtoolsModule { }
+export class DevtoolsModule { }

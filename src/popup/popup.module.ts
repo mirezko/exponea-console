@@ -12,4 +12,4 @@ import { PopupComponent } from './popup.component';
   ],
   bootstrap: [ PopupComponent ]
 })
-export class popupModule { }
+export class PopupModule { }
